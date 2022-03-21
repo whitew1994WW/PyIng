@@ -1,0 +1,41 @@
+[
+        {
+            "ingr": "1 1/4 cups cooked and pureed fresh butternut squash, or 1 10-ounce package frozen squash, defrosted",
+            "name": "butternut squash",
+            "qty": 1.25,
+            "unit": "cup",
+            "comment": "cooked and pureed fresh, or 1 10-ounce package frozen squash, defrosted",
+            "output": "Q Q U C C C C I I P C C C C C C C P C"
+        },
+        {
+            "ingr": "1 cup peeled and cooked fresh chestnuts (about 20), or 1 cup canned, unsweetened chestnuts",
+            "name": "chestnuts",
+            "qty": 1,
+            "unit": "cup",
+            "comment": "peeled and cooked fresh (about 20), or 1 cup canned, unsweetened",
+            "output": "Q U C C C C I C C P C C C C P C I"
+        },
+        {
+            "ingr": "1 medium-size onion, peeled and chopped",
+            "name": "onion",
+            "qty": 1,
+            "unit": "",
+            "comment": "medium-size, peeled and chopped",
+            "output": "Q C C I P C C C"
+        },
+        {
+            "ingr": "2 stalks celery, chopped coarse",
+            "name": "celery",
+            "qty": 2,
+            "unit": "stalks",
+            "comment": "chopped coarse",
+            "output": "Q U I P C C"
+        },
+        {
+            "ingr": "1 1 / 2 tablespoons vegetable oil",
+            "name": "vegetable oil",
+            "qty": 1.5,
+            "unit": "tablespoon",
+            "comment": "",
+            "output": "Q Q Q Q U I I"
+        }]
