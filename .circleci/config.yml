@@ -37,7 +37,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: python -m unittest discover
-      - build:
+      - run:
           name: Run module setup
           # This assumes pytest is installed via the install-package step above
           command: python setup.py bdist_wheel
