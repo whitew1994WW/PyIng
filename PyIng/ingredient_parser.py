@@ -24,7 +24,35 @@ def parse_ingredients(ingredients):
     :param ingredients: String of ingredients or list of strings of ingredients
     :return: Dictionary containing the ingredient, unit and quantity within the input
     """
-    pass
+    if isinstance(ingredients, str):
+        ingredients = [ingredients]
+
+    elif isinstance(ingredients, list):
+        for ing in ingredients:
+            if not isinstance(ing, str):
+                raise ValueError("Input ingredients must all be strings!")
+    else:
+        raise ValueError("Ingredients is not the correct format. " +
+                         "It must be either an ingredient string or a list of ingredient strings")
+
+    # Preprocess ingredients
+    processed_ingredients = _preprocess_input_ingredient_strings(ingredients)
+    vectorized_ingredients = _vectorize_input_strings(processed_ingredients)
+    padded_ing_vectors = _pad_post_array(vectorized_ingredients, 60)
+
+    # Convert to float for input to interpreter
+    interpreter_input = np.asarray(padded_ing_vectors).astype(np.float32)
+    # Build the interpreter and run the input through
+    interpreter = _build_tf_interpreter()
+
+    unit_name_output, qty_output = _run_tf_interpreter_multiple_input(interpreter, interpreter_input)
+
+    # Build the output
+    output = _model_output_to_list_of_dicts(unit_name_output, qty_output, processed_ingredients)
+
+    if len(output) == 1:
+        output = output[0]
+    return output
 
 
 def _build_tf_interpreter():
@@ -38,12 +66,12 @@ def _build_tf_interpreter():
     return interpreter
 
 
-def _run_tf_interpreter(interpreter, input_data):
+def _run_tf_interpreter_single_input(interpreter, input_data):
     """
     Runs inference on the tensorflow model trained in the ipynb in this project.
 
     :param interpreter: Tensorflow interpreter created with _build_tf_interpreter
-    :param input_data: Input model data, already vectorized, length 60 array of integers
+    :param input_data: Input model data, already vectorized, length (1, 60) array of integers
     :return: Unit_name_output - [60, 2] float array, one row for unit and one for name.
     Probabilities of word being a unit  or name respectively.
     """
@@ -57,13 +85,30 @@ def _run_tf_interpreter(interpreter, input_data):
 
     # The function `get_tensor()` returns a copy of the tensor data.
     # Use `tensor()` in order to get a pointer to the tensor.
-    qty_output = interpreter.get_tensor(output_details[0]['index'])
-    unit_name_output = interpreter.get_tensor(output_details[1]['index'])
+    qty_output = interpreter.get_tensor(output_details[1]['index'])
+    unit_name_output = interpreter.get_tensor(output_details[0]['index'])
 
     return unit_name_output, qty_output
 
 
+def _run_tf_interpreter_multiple_input(interpreter, input_data):
+    num_ings = input_data.shape[0]
+    output_unit_name = np.zeros((num_ings, 2, 60))
+    output_qty = np.zeros(num_ings)
+    for i in range(num_ings):
+        inp_array = np.reshape(input_data[i, :], (1, 60))
+        unit_name, qty = _run_tf_interpreter_single_input(interpreter, inp_array)
+        output_unit_name[i, :, :] = unit_name
+        output_qty[i] = qty
+    return output_unit_name, output_qty
+
+
 def _preprocess_input_ingredient_strings(ingredients: list):
+    """
+    See _preprocess_input_ingredient_string.
+    :param ingredients: List of Ingredient strings
+    :return: processed list of ingredient strings
+    """
     processed_ings = []
     for ing in ingredients:
         processed_ings.append(_preprocess_input_ingredient_string(ing))
@@ -71,6 +116,11 @@ def _preprocess_input_ingredient_strings(ingredients: list):
 
 
 def _preprocess_input_ingredient_string(ingredient: str):
+    """
+    Processes input ingredients to remove punctuation, de-capitalise amd remove trainling white space
+    :param ingredient: ingredient string e.g. "3 Tablespoons Salt (fine)
+    :return: processed string "3 tablespoons salt fine
+    """
     string = re.sub(r"([,./])", r" \g<1> ", ingredient)
     string = re.sub(r'[^\w\s.,/]', r" ", string)
     string = re.sub(r"\s+", r" ", string)
@@ -100,8 +150,11 @@ def _model_output_to_dict(model_name_unit_output, model_qty_output, ingredient: 
     """
     ingredient_list = np.array(ingredient.split(" "))
     # convert the model output to a boolean mask for selecting the words from the input
-    name_mask = model_name_unit_output[0, :len(ingredient_list)].astype(np.bool)
-    unit_mask = model_name_unit_output[1, :len(ingredient_list)].astype(np.bool)
+    rounded_name_output = np.round(model_name_unit_output[0, :len(ingredient_list)])
+    rounded_unit_output = np.round(model_name_unit_output[1, :len(ingredient_list)])
+
+    name_mask = rounded_name_output.astype(np.bool)
+    unit_mask = rounded_unit_output.astype(np.bool)
     name = " ".join(ingredient_list[name_mask])
     unit = " ".join(ingredient_list[unit_mask])
     qty = round(model_qty_output, 2)
@@ -110,7 +163,19 @@ def _model_output_to_dict(model_name_unit_output, model_qty_output, ingredient: 
 
 
 def _model_output_to_list_of_dicts(model_name_unit_output, model_qty_output, ingredients):
-    return
+    """
+    See _model_output_to_dict. Deals with multiple model outputs for multiple input ingredients.
+    :param model_name_unit_output: Numpy array of shape (None, 2, 60)
+    :param model_qty_output: List of quantity outputs from the model
+    :param ingredients: List of ingredients
+    :return: List of dictionarys containing parsed information
+    """
+    output_parsed_list = []
+    for i in range(len(ingredients)):
+        parsed_ing = _model_output_to_dict(model_name_unit_output[i, :, :], model_qty_output[i], ingredients[i])
+        output_parsed_list.append(parsed_ing)
+    return output_parsed_list
+
 
 def _vectorize_input_strings(input_ingredients):
     """
@@ -146,6 +211,20 @@ def _vectorize_input_string(input_ingredient: str, word_index: dict):
         else:
             idx_list.append(word_index['<OOV>'])
     return idx_list
+
+
+def _pad_post_array(input_array, length):
+    """
+    Pads the input 2D list with 0's at the end so that is is of shape (None, length)
+    :param input_array: 2D list
+    :param length: length to pad to
+    :return: (None, length) padded array
+    """
+    output_array = []
+    for arr in input_array:
+        padded = arr + (length - len(arr))*[0]
+        output_array.append(padded)
+    return output_array
 
 
 def _load_word_index():

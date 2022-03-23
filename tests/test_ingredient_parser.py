@@ -18,10 +18,21 @@ class TestIngredientParser(unittest.TestCase):
         # Test the model on random input data.
         input_shape = input_details[0]['shape']
         input_data = np.array(np.random.randint(1, 1000, input_shape), dtype=np.float32)
-        output_name, output_qty = PyIng.ingredient_parser._run_tf_interpreter(interpreter, input_data)
+        output_name, output_qty = PyIng.ingredient_parser._run_tf_interpreter_single_input(interpreter, input_data)
 
         self.assertEqual(output_name.shape[1:], (2, 60))
         self.assertEqual(output_qty.shape[1], 1)
+
+    def test_run_tf_interpreter_multiple_input(self):
+        interpreter = PyIng.ingredient_parser._build_tf_interpreter()
+        input_details = interpreter.get_input_details()
+        # Test the model on random input data.
+        input_shape = (3, 1, 60)
+        input_data = np.array(np.random.randint(1, 1000, input_shape), dtype=np.float32)
+
+        output_name, output_qty = PyIng.ingredient_parser._run_tf_interpreter_multiple_input(interpreter, input_data)
+        self.assertEqual(output_name.shape, (3, 2, 60))
+
 
     def test_preprocess_input_ingredient_string(self):
         input_ingredient = "3 1/2 Teaspoons of salt, (finely diced) "
@@ -70,8 +81,9 @@ class TestIngredientParser(unittest.TestCase):
 
     def test_model_output_to_list_of_dicts(self):
         model_name_unit_outputs = np.zeros((3, 2, 60), dtype=np.float64)
-        model_name_unit_outputs[:][0][2:3] = 0.6
-        model_name_unit_outputs[:][1][1] = 0.6
+        for i in range(3):
+            model_name_unit_outputs[i][0][2:4] = 0.6
+            model_name_unit_outputs[i][1][1] = 0.6
         qty_outputs = [12.3452]*3
         input_parsed_ings = ["1 ounce plain flour"]*3
         output_dict = PyIng.ingredient_parser._model_output_to_list_of_dicts(model_name_unit_outputs, qty_outputs, input_parsed_ings)
@@ -82,7 +94,19 @@ class TestIngredientParser(unittest.TestCase):
         }]
         self.assertEqual(output_dict, expected_output)
 
+    def test_pad_post_array(self):
+        input_array = [[1, 2, 3], [1, 2, 3, 4], [1, 2]]
+        length = 60
+        padded_array = PyIng.ingredient_parser._pad_post_array(input_array, length)
+        self.assertEqual(len(padded_array), 3)
+        self.assertEqual(len(padded_array[0]), 60)
+        self.assertEqual(padded_array[0][2], 3)
 
+    def test_parse_ingredient(self):
+        input_ingredients = ["1 teaspoon flour", "3 cylinders of tomatoes", "13.5 cm of ginger", "1 1/2 cups plus 1 teaspoon plain flour"]
+        expected_output = [{"name": "flour", "unit": "teaspoon",  "qty": 1.00}, {"name": "tomatoes", "unit": "cylinders",  "qty": 3.00}, {"name": "ginger", "unit": "cm",  "qty": 13.50}, {}]
+        output = PyIng.ingredient_parser.parse_ingredients(input_ingredients)
+        self.assertListEqual(output, expected_output)
 
 if __name__ == '__main__':
     unittest.main()
