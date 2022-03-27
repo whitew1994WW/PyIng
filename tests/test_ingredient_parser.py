@@ -62,10 +62,6 @@ class TestIngredientParser(unittest.TestCase):
         print(output)
         self.assertEqual(output, [1, 5, 5, 5, 5, 2, 5, 3, 5, 5])
 
-    def test_load_word_index(self):
-        word_index = PyIng.ingredient_parser._load_word_index()
-        self.assertIsInstance(word_index, dict)
-
     def test_model_output_to_dict(self):
         model_name_unit_output = np.zeros((2, 60), dtype=np.float64)
         model_name_unit_output[0][2:4] = 0.6
