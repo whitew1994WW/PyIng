@@ -1,2 +1,2 @@
 numpy>=1.12.1
-tflite-runtime
+tflite-runtime==2.5.0
