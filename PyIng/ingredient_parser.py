@@ -4,7 +4,7 @@ import numpy as np
 import re
 import json
 
-MODEL_PATH = "../models/output_model.tflite"
+MODEL_PATH = "../output_model.tflite"
 
 
 def parse_ingredients(ingredients):
