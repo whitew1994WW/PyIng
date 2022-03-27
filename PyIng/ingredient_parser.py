@@ -45,7 +45,8 @@ def parse_ingredients(ingredients):
     # Build the interpreter and run the input through
     interpreter = _build_tf_interpreter()
 
-    unit_name_output, qty_output = _run_tf_interpreter_multiple_input(interpreter, interpreter_input)
+    unit_name_output, qty_output, qty_decimal_output = _run_tf_interpreter_multiple_input(interpreter, interpreter_input)
+    qty_output = _round_qty(qty_output, qty_decimal_output)
 
     # Build the output
     output = _model_output_to_list_of_dicts(unit_name_output, qty_output, processed_ingredients)
@@ -85,22 +86,26 @@ def _run_tf_interpreter_single_input(interpreter, input_data):
 
     # The function `get_tensor()` returns a copy of the tensor data.
     # Use `tensor()` in order to get a pointer to the tensor.
+    qty_decimal_output = interpreter.get_tensor(output_details[2]['index'])
     qty_output = interpreter.get_tensor(output_details[1]['index'])
     unit_name_output = interpreter.get_tensor(output_details[0]['index'])
 
-    return unit_name_output, qty_output
+    return unit_name_output, qty_output, qty_decimal_output
 
 
 def _run_tf_interpreter_multiple_input(interpreter, input_data):
     num_ings = input_data.shape[0]
     output_unit_name = np.zeros((num_ings, 2, 60))
     output_qty = np.zeros(num_ings)
+    output_qty_decimal = np.zeros((num_ings, 3))
     for i in range(num_ings):
         inp_array = np.reshape(input_data[i, :], (1, 60))
-        unit_name, qty = _run_tf_interpreter_single_input(interpreter, inp_array)
+        unit_name, qty, qty_decimal = _run_tf_interpreter_single_input(interpreter, inp_array)
         output_unit_name[i, :, :] = unit_name
         output_qty[i] = qty
-    return output_unit_name, output_qty
+        output_qty_decimal[i, :] = qty_decimal
+    print(output_qty_decimal)
+    return output_unit_name, output_qty, output_qty_decimal
 
 
 def _preprocess_input_ingredient_strings(ingredients: list):
@@ -235,3 +240,19 @@ def _load_word_index():
     with open("../word_index.json", "r") as f:
         word_index = json.load(f)
     return word_index
+
+
+def _round_qty(qty_output, qty_decimal_output):
+    """
+    Rounds each element of qty_output to 0, 1 or 2 decimal places based on the corresponding one hot array in
+    qty_decimal_output
+    :param qty_output: Qty Predictions from _run_tf_interpreter_multiple_inputs array size (None, 1)
+    :param qty_decimal_output: Qty Decimal predictions from same function as above, size (None, 3)
+    :return: Returns an array the same shape as qty_output
+    """
+    for i in range(qty_output.shape[0]):
+        idx_oh = np.argmax(qty_decimal_output[i, :])
+        qty_output[i] = round(qty_output[i], idx_oh)
+    return qty_output
+
+
