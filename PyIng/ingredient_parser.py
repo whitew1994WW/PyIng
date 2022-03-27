@@ -2,10 +2,11 @@ import PyIng
 import tflite_runtime.interpreter as tf_lite
 import numpy as np
 import re
-import json
+import pickle
+import os
 
-MODEL_PATH = "../output_model.tflite"
-
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "output_model.tflite")
+WORD_INDEX_PATH = os.path.join(os.path.join(os.path.dirname(__file__), "..", "word_index.pckl"))
 
 def parse_ingredients(ingredients):
     """
@@ -237,8 +238,8 @@ def _load_word_index():
     Loads in the pre saved word index
     :return: {"word": idx ..... }
     """
-    with open("../word_index.json", "r") as f:
-        word_index = json.load(f)
+    with open(WORD_INDEX_PATH, "rb") as f:
+        word_index = pickle.load(f)
     return word_index
 
 
