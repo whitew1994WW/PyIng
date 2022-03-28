@@ -35,12 +35,16 @@ jobs:
       - checkout
       - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+       - run: # install and activate virtual environment with pip
+           command: |
+             python3 -m venv venv
       - run:
           name: upgrade_pip
-          command: pip install --upgrade pip
+          command: |
+            . venv/bin/activate
+            pip install --upgrade pip
       - run: # install and activate virtual environment with pip
           command: |
-            python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
       - save_cache: # ** special step to save dependency cache **
@@ -59,21 +63,8 @@ jobs:
       - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
-          name: upgrade_pip
-          command: pip install --upgrade pip
-      - run: # install and activate virtual environment with pip
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-      - save_cache: # ** special step to save dependency cache **
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths:
-            - "venv"
-      - run:
           name: verify git tag vs. version
           command: |
-            python3 -m venv venv
             . venv/bin/activate
             python setup.py verify
       - run:
@@ -85,7 +76,6 @@ jobs:
       - run:
           name: create packages
           command: |
-            python3 -m venv venv
             . venv/bin/activate
             python setup.py sdist & python setup.py bdist_wheel
       - run:
