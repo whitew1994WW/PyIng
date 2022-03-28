@@ -22,5 +22,6 @@ setup(
     url='https://github.com/whitew1994WW/PyIng',
     test_suite='tests',
     python_requires='>=3.7',
-    long_description=readme()
+    long_description=readme(),
+    long_description_content_type='text/markdown'
 )
