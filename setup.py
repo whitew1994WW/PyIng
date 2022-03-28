@@ -29,7 +29,7 @@ class VerifyVersionCommand(install):
 setup(
     name='PyIng',
     packages=find_packages(include=['PyIng']),
-    version='0.1.0',
+    version=VERSION,
     description='Parses ingredient names into Name, Unit and Quantity',
     author='Will White',
     license='MIT',
