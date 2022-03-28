@@ -8,7 +8,7 @@ VERSION = "0.1.11"
 
 def readme():
     """print long description"""
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup(
