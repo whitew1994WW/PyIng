@@ -55,7 +55,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: |
-            . vene/bin/activate
+            . venv/bin/activate
             python -m unittest discover
   deploy:
     docker:
