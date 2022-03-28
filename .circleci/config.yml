@@ -4,71 +4,46 @@ version: 2.1
 workflows:
   build-and-deploy:
     jobs:
-      - build-and-test:
-          filters:
-            tags:
-              only: /.*/
+      - build-and-test
       - deploy:
           requires:
             - build-and-test
           filters:
-            tags:
-#              only: /[0-9]+(\.[0-9]+)*/
-#            branches:
-              only: /.*/
+            branches:
+              only: master
 
 
 orbs:
   python: circleci/python@2.0.3
-
-
 jobs:
   build-and-test:
     docker:
       - image: cimg/python:3.7.4
-    # Checkout the code as the first step. This is a dedicated CircleCI step.
-    # The python orb's install-packages step will install the dependencies from a Pipfile via Pipenv by default.
-    # Here we're making sure we use just use the system-wide pip. By default it uses the project root's requirements.txt.
-    # Then run your tests!
-    # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
-      - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-      - run: # install and activate virtual environment with pip
-          command: |
-            python3 -m venv venv
       - run:
           name: upgrade_pip
           command: |
-            . venv/bin/activate
             pip install --upgrade pip
-      - run: # install and activate virtual environment with pip
+      - run:
           command: |
-            . venv/bin/activate
             pip install -r requirements.txt
-      - save_cache: # ** special step to save dependency cache **
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths:
-            - "venv"
       - run:
           name: Run tests
-          # This assumes pytest is installed via the install-package step above
           command: |
-            . venv/bin/activate
             python -m unittest discover
   deploy:
     docker:
       - image: circleci/python:3.7.4
     steps:
       - checkout
-      - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
-          name: verify git tag vs. version
+          name: upgrade_pip
           command: |
-            . venv/bin/activate
-            python setup.py verify
+            pip install --upgrade pip
+      - run:
+          command: |
+            pip install -r requirements.txt
       - run:
           name: init .pypirc
           command: |
@@ -78,10 +53,7 @@ jobs:
       - run:
           name: create packages and upload to pypi
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
             python setup.py sdist
-            python -m twine upload dist/*
-
+            twine upload dist/*
 
 
