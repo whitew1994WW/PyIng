@@ -54,7 +54,9 @@ jobs:
       - run:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
-          command: python -m unittest discover
+          command: |
+            . vene/bin/activate
+            python -m unittest discover
   deploy:
     docker:
       - image: circleci/python:3.7.4
