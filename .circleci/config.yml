@@ -34,7 +34,7 @@ jobs:
             python -m unittest discover
   deploy:
     docker:
-      - image: circleci/python:3.7.4
+      - image: cimg/python:3.7.4
     steps:
       - checkout
       - run:
