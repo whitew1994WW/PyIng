@@ -33,13 +33,20 @@ jobs:
     # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
+      - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: upgrade_pip
           command: pip install --upgrade pip
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          # pip-dependency-file: test-requirements.txt  # if you have a different name for your requirements file, maybe one that combines your runtime and test requirements.
+      - run: # install and activate virtual environment with pip
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache: # ** special step to save dependency cache **
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
       - run:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
@@ -48,9 +55,27 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     steps:
+      - checkout
+      - restore_cache: # **restores saved dependency cache if the Branch key template or requirements.txt files have not changed since the previous run**
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: upgrade_pip
+          command: pip install --upgrade pip
+      - run: # install and activate virtual environment with pip
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache: # ** special step to save dependency cache **
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
       - run:
           name: verify git tag vs. version
-          command: python setup.py verify
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python setup.py verify
       - run:
           name: init .pypirc
           command: |
@@ -60,6 +85,8 @@ jobs:
       - run:
           name: create packages
           command: |
+            python3 -m venv venv
+            . venv/bin/activate
             python setup.py sdist & python setup.py bdist_wheel
       - run:
           name: upload to pypi
