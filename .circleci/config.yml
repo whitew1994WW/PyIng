@@ -80,7 +80,7 @@ jobs:
           command: |
             . venv/bin/activate
             python setup.py sdist
-            ls
-            twine upload ~/dist/*
+            python -m twine upload dist/*
+
 
 
