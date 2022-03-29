@@ -4,7 +4,7 @@ import sys
 import os
 
 # circleci.py version
-VERSION = "0.1.14"
+VERSION = "0.1.15"
 
 def readme():
     """print long description"""
@@ -25,5 +25,5 @@ setup(
     long_description=readme(),
     long_description_content_type='text/markdown',
     include_package_data=True,
-    package_data={'': ['data/*']},
+    zip_safe=True
 )
