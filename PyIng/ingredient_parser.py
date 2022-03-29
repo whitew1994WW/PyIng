@@ -5,8 +5,8 @@ import re
 import pickle
 from pkg_resources import resource_filename
 
-WORD_INDEX_PATH = resource_filename('PyIng', "word_index.pckl")
-MODEL_PATH = resource_filename('PyIng', "output_model.tflite")
+WORD_INDEX_PATH = resource_filename('PyIng', "data/word_index.pckl")
+MODEL_PATH = resource_filename('PyIng', "data/output_model.tflite")
 
 
 def parse_ingredients(ingredients):
