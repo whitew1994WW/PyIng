@@ -5,8 +5,9 @@ import re
 import pickle
 import os
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "output_model.tflite")
-WORD_INDEX_PATH = os.path.join(os.path.join(os.path.dirname(__file__), "..", "word_index.pckl"))
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "output_model.tflite")
+WORD_INDEX_PATH = os.path.join(os.path.dirname(__file__), "word_index.pckl")
+
 
 def parse_ingredients(ingredients):
     """
