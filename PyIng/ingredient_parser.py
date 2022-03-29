@@ -3,10 +3,10 @@ import tflite_runtime.interpreter as tf_lite
 import numpy as np
 import re
 import pickle
-import os
+from pkg_resources import resource_filename
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "output_model.tflite")
-WORD_INDEX_PATH = os.path.join(os.path.dirname(__file__), "word_index.pckl")
+WORD_INDEX_PATH = resource_filename('PyIng', "word_index.pckl")
+MODEL_PATH = resource_filename('PyIng', "output_model.tflite")
 
 
 def parse_ingredients(ingredients):
