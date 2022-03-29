@@ -4,7 +4,7 @@ import sys
 import os
 
 # circleci.py version
-VERSION = "0.1.12"
+VERSION = "0.1.13"
 
 def readme():
     """print long description"""
