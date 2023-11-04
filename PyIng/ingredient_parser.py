@@ -106,7 +106,6 @@ def _run_tf_interpreter_multiple_input(interpreter, input_data):
         output_unit_name[i, :, :] = unit_name
         output_qty[i] = qty
         output_qty_decimal[i, :] = qty_decimal
-    print(output_qty_decimal)
     return output_unit_name, output_qty, output_qty_decimal
 
 
@@ -160,8 +159,8 @@ def _model_output_to_dict(model_name_unit_output, model_qty_output, ingredient: 
     rounded_name_output = np.round(model_name_unit_output[0, :len(ingredient_list)])
     rounded_unit_output = np.round(model_name_unit_output[1, :len(ingredient_list)])
 
-    name_mask = rounded_name_output.astype(np.bool)
-    unit_mask = rounded_unit_output.astype(np.bool)
+    name_mask = rounded_name_output.astype(bool)
+    unit_mask = rounded_unit_output.astype(bool)
     name = " ".join(ingredient_list[name_mask])
     unit = " ".join(ingredient_list[unit_mask])
     qty = round(model_qty_output, 2)
