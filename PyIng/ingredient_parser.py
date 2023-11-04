@@ -106,7 +106,6 @@ def _run_tf_interpreter_multiple_input(interpreter, input_data):
         output_unit_name[i, :, :] = unit_name
         output_qty[i] = qty
         output_qty_decimal[i, :] = qty_decimal
-    print(output_qty_decimal)
     return output_unit_name, output_qty, output_qty_decimal
 
 
