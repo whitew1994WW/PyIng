@@ -160,8 +160,8 @@ def _model_output_to_dict(model_name_unit_output, model_qty_output, ingredient: 
     rounded_name_output = np.round(model_name_unit_output[0, :len(ingredient_list)])
     rounded_unit_output = np.round(model_name_unit_output[1, :len(ingredient_list)])
 
-    name_mask = rounded_name_output.astype(np.bool)
-    unit_mask = rounded_unit_output.astype(np.bool)
+    name_mask = rounded_name_output.astype(bool)
+    unit_mask = rounded_unit_output.astype(bool)
     name = " ".join(ingredient_list[name_mask])
     unit = " ".join(ingredient_list[unit_mask])
     qty = round(model_qty_output, 2)
